@@ -167,17 +167,21 @@
             overflow: hidden;
             display: none;
             min-height: 500px;
+            position: relative;
         }
         
         .tab-content.active {
             display: flex;
             flex-direction: column;
+            height: 100%;
         }
         
         #graph-canvas {
-            width: 100% !important;
-            height: 100% !important;
             flex: 1;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: white;
         }
         
         .reports-content {
@@ -1166,68 +1170,92 @@
         function initNetwork() {
             const container = document.getElementById('graph-canvas');
             
-            // Ensure container has explicit dimensions
-            const parent = container.parentElement;
-            if (parent) {
-                const rect = parent.getBoundingClientRect();
-                container.style.width = rect.width + 'px';
-                container.style.height = rect.height + 'px';
-            } else {
-                container.style.width = '100%';
-                container.style.height = '600px';
-            }
-            
-            const data = { nodes, edges };
-            const options = {
-                physics: {
-                    enabled: true,
-                    stabilization: {
-                        iterations: 200
-                    }
-                },
-                nodes: {
-                    shape: 'dot',
-                    scaling: {
-                        label: {
-                            enabled: true,
-                            min: 14,
-                            max: 30
+            // Wait for DOM to be fully rendered, then size the container
+            setTimeout(() => {
+                const parent = container.parentElement;
+                const computedStyle = window.getComputedStyle(parent);
+                const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+                const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
+                
+                // Get parent dimensions
+                const parentHeight = parent.clientHeight - paddingTop - paddingBottom;
+                const parentWidth = parent.clientWidth;
+                
+                // Set container dimensions explicitly
+                container.style.width = parentWidth + 'px';
+                container.style.height = Math.max(parentHeight, 400) + 'px';
+                container.style.display = 'block';
+                
+                // Force redraw
+                container.offsetHeight;
+                
+                const data = { nodes, edges };
+                const options = {
+                    physics: {
+                        enabled: true,
+                        stabilization: {
+                            iterations: 200
                         }
                     },
-                    font: {
-                        size: 16,
-                        face: 'Tahoma'
-                    }
-                },
-                edges: {
-                    width: 2,
-                    color: {
-                        color: '#ccc',
-                        highlight: '#667eea'
-                    },
-                    font: {
-                        size: 12,
-                        align: 'middle'
-                    },
-                    arrows: {
-                        to: {
-                            enabled: true,
-                            scaleFactor: 0.5
+                    nodes: {
+                        shape: 'dot',
+                        scaling: {
+                            label: {
+                                enabled: true,
+                                min: 14,
+                                max: 30
+                            }
+                        },
+                        font: {
+                            size: 16,
+                            face: 'Tahoma'
                         }
+                    },
+                    edges: {
+                        width: 2,
+                        color: {
+                            color: '#ccc',
+                            highlight: '#667eea'
+                        },
+                        font: {
+                            size: 12,
+                            align: 'middle'
+                        },
+                        arrows: {
+                            to: {
+                                enabled: true,
+                                scaleFactor: 0.5
+                            }
+                        }
+                    },
+                    interaction: {
+                        navigationButtons: true,
+                        keyboard: true,
+                        zoomView: true,
+                        dragView: true
                     }
-                },
-                interaction: {
-                    navigationButtons: true,
-                    keyboard: true
-                }
-            };
-            
-            network = new vis.Network(container, data, options);
-            
-            // Fit the network to view when ready
-            network.once('stabilizationIterationsDone', () => {
-                network.fit();
-            });
+                };
+                
+                network = new vis.Network(container, data, options);
+                
+                // Fit the network to view when ready
+                setTimeout(() => {
+                    network.fit({ animation: { duration: 500 } });
+                }, 100);
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    if (network) {
+                        const newParent = container.parentElement;
+                        const newHeight = newParent.clientHeight;
+                        const newWidth = newParent.clientWidth;
+                        
+                        container.style.width = newWidth + 'px';
+                        container.style.height = newHeight + 'px';
+                        network.redraw();
+                    }
+                });
+            }, 100);
         }
         
         // Create a new node

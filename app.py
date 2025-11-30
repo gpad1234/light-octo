@@ -30,6 +30,35 @@ if ENABLE_OPENAI_NLP:
 nodes = {}
 edges = []
 
+# Initialize with sample data
+def initialize_sample_data():
+    """Load sample graph data."""
+    sample_nodes = [
+        {'id': 'user', 'label': 'User', 'type': 'entity', 'x': 100, 'y': 100},
+        {'id': 'order', 'label': 'Order', 'type': 'entity', 'x': 300, 'y': 100},
+        {'id': 'product', 'label': 'Product', 'type': 'entity', 'x': 500, 'y': 100},
+        {'id': 'payment', 'label': 'Payment', 'type': 'entity', 'x': 300, 'y': 300},
+        {'id': 'inventory', 'label': 'Inventory', 'type': 'entity', 'x': 500, 'y': 300},
+    ]
+    
+    sample_edges = [
+        {'source': 'user', 'target': 'order', 'relation': 'places'},
+        {'source': 'order', 'target': 'product', 'relation': 'contains'},
+        {'source': 'order', 'target': 'payment', 'relation': 'has_payment'},
+        {'source': 'product', 'target': 'inventory', 'relation': 'tracked_in'},
+    ]
+    
+    for node in sample_nodes:
+        nodes[node['id']] = node
+    
+    for edge in sample_edges:
+        edges.append({
+            'id': f"{edge['source']}-{edge['target']}",
+            'source': edge['source'],
+            'target': edge['target'],
+            'relation': edge['relation']
+        })
+
 # Demo credentials (in production, use a proper database)
 VALID_USERS = {
     'user': {'password': 'user123', 'role': 'user'},
@@ -232,6 +261,19 @@ def clear_graph():
     nodes.clear()
     edges[:] = []
     return jsonify(message='Graph cleared'), 200
+
+
+@app.route('/api/graph/sample', methods=['POST'])
+def load_sample_data():
+    """Load sample graph data."""
+    nodes.clear()
+    edges[:] = []
+    initialize_sample_data()
+    return jsonify(
+        message='Sample data loaded',
+        nodes=list(nodes.values()),
+        edges=edges
+    ), 200
 
 
 @app.route('/api/graph/import', methods=['POST'])
@@ -594,6 +636,9 @@ def openai_query():
 
 
 if __name__ == '__main__':
+    # Initialize sample data on startup
+    initialize_sample_data()
+    
     # Only run development server if DEBUG is True
     # In production, use gunicorn instead
     debug_mode = os.getenv('DEBUG', 'false').lower() == 'true'

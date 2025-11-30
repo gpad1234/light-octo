@@ -499,12 +499,417 @@
             font-size: 12px;
             color: #999;
         }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 1024px) {
+            body {
+                padding: 20px;
+                padding-top: 70px;
+                padding-bottom: 80px;
+            }
+            
+            .container {
+                flex-direction: column;
+                height: auto;
+                gap: 0;
+            }
+            
+            .sidebar {
+                display: none;
+                position: fixed;
+                left: 0;
+                top: 70px;
+                width: 280px;
+                height: calc(100vh - 150px);
+                border-radius: 0;
+                z-index: 999;
+                max-height: 100%;
+            }
+            
+            .sidebar.show {
+                display: flex;
+            }
+            
+            .main-content {
+                flex: 1;
+                width: 100%;
+                gap: 10px;
+            }
+            
+            .tabs {
+                gap: 5px;
+                padding: 8px;
+            }
+            
+            .tab-button {
+                padding: 8px 12px;
+                font-size: 12px;
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .tab-content {
+                border-radius: 8px;
+            }
+            
+            .header {
+                padding: 0 15px;
+                height: 60px;
+            }
+            
+            .header-logo {
+                font-size: 18px;
+            }
+            
+            .header-right {
+                gap: 10px;
+            }
+            
+            .user-info {
+                font-size: 12px;
+                display: none;
+            }
+            
+            .logout-button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .menu-toggle {
+                display: block;
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: #333;
+                padding: 5px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                padding-top: 60px;
+                padding-bottom: 80px;
+            }
+            
+            .header {
+                padding: 0 12px;
+                height: 55px;
+            }
+            
+            .header-logo {
+                font-size: 16px;
+            }
+            
+            .role-badge {
+                display: none;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: calc(100vh - 135px);
+                border-radius: 0;
+                top: 55px;
+                padding: 15px;
+            }
+            
+            .sidebar::before {
+                content: '';
+                position: fixed;
+                top: 55px;
+                left: 0;
+                right: 0;
+                bottom: 80px;
+                background: rgba(0, 0, 0, 0.3);
+                display: none;
+                z-index: 998;
+            }
+            
+            .sidebar.show::before {
+                display: block;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .tab-button {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            
+            h1, h2 {
+                font-size: 14px;
+            }
+            
+            .form-group {
+                gap: 6px;
+            }
+            
+            label {
+                font-size: 11px;
+            }
+            
+            input[type="text"],
+            input[type="number"],
+            select,
+            textarea {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+            
+            button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .stat-box {
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .report-content {
+                font-size: 11px;
+                max-height: 200px;
+            }
+            
+            .list-item {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+            
+            .report-card {
+                padding: 12px;
+            }
+            
+            .report-title {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+            
+            /* Bottom Navigation Bar for Mobile */
+            .mobile-nav {
+                display: none;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 70px;
+                background: white;
+                border-top: 1px solid #e0e0e0;
+                display: flex;
+                gap: 0;
+                z-index: 1000;
+                box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .mobile-nav button {
+                flex: 1;
+                border: none;
+                background: #f0f0f0;
+                color: #666;
+                font-size: 11px;
+                padding: 8px 5px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                border-radius: 0;
+                transition: all 0.2s;
+                margin: 0;
+            }
+            
+            .mobile-nav button.active {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            
+            .mobile-nav button:active {
+                transform: none;
+            }
+            
+            .mobile-nav-icon {
+                font-size: 18px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+                padding-top: 55px;
+                padding-bottom: 75px;
+            }
+            
+            .header {
+                padding: 0 10px;
+                height: 50px;
+            }
+            
+            .header-logo {
+                font-size: 14px;
+            }
+            
+            .logout-button {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            
+            .header-left {
+                gap: 10px;
+            }
+            
+            .header-right {
+                gap: 8px;
+            }
+            
+            .sidebar {
+                top: 50px;
+                height: calc(100vh - 125px);
+                padding: 12px;
+            }
+            
+            .main-content {
+                gap: 8px;
+            }
+            
+            .tabs {
+                gap: 3px;
+                padding: 6px;
+            }
+            
+            .tab-button {
+                padding: 5px 8px;
+                font-size: 10px;
+            }
+            
+            .tab-content {
+                border-radius: 6px;
+            }
+            
+            h1 {
+                font-size: 13px;
+            }
+            
+            h2 {
+                font-size: 12px;
+            }
+            
+            .form-group {
+                gap: 5px;
+            }
+            
+            label {
+                font-size: 10px;
+            }
+            
+            input[type="text"],
+            input[type="number"],
+            select,
+            textarea {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            
+            button {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            
+            .button-group {
+                gap: 6px;
+            }
+            
+            .stats-grid {
+                gap: 6px;
+            }
+            
+            .stat-box {
+                padding: 8px;
+            }
+            
+            .stat-label {
+                font-size: 10px;
+            }
+            
+            .stat-value {
+                font-size: 18px;
+                margin-top: 2px;
+            }
+            
+            .report-card {
+                padding: 10px;
+            }
+            
+            .report-title {
+                font-size: 12px;
+                margin-bottom: 6px;
+            }
+            
+            .report-content {
+                font-size: 10px;
+                padding: 8px;
+                max-height: 150px;
+            }
+            
+            .list-item {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+            
+            .copy-button {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+            
+            .info-message,
+            .success-message,
+            .error-message {
+                padding: 8px;
+                font-size: 11px;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .modal-header {
+                font-size: 14px;
+            }
+            
+            .mobile-nav {
+                height: 65px;
+            }
+            
+            .mobile-nav button {
+                font-size: 10px;
+                padding: 6px 3px;
+            }
+            
+            .mobile-nav-icon {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Header with User Info -->
     <div class="header">
         <div class="header-left">
+            <button class="menu-toggle" onclick="toggleSidebar()" style="display: none;">☰</button>
             <div class="header-logo">🧠 NLP Graph Builder</div>
         </div>
         <div class="header-right">
@@ -1303,7 +1708,88 @@
         window.addEventListener('load', () => {
             initNetwork();
             loadGraphData();
+            setupMobileResponsive();
+        });
+        
+        // Mobile Responsive Functions
+        function setupMobileResponsive() {
+            const isMobile = window.innerWidth <= 1024;
+            const menuToggle = document.querySelector('.menu-toggle');
+            
+            if (isMobile) {
+                menuToggle.style.display = 'block';
+                // Hide mobile nav on desktop
+                const mobileNav = document.querySelector('.mobile-nav');
+                if (mobileNav && window.innerWidth > 768) {
+                    mobileNav.style.display = 'none';
+                } else if (mobileNav && window.innerWidth <= 768) {
+                    mobileNav.style.display = 'flex';
+                }
+            } else {
+                menuToggle.style.display = 'none';
+            }
+        }
+        
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('show');
+        }
+        
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.remove('show');
+        }
+        
+        function switchTabMobile(tabName) {
+            closeSidebar();
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[onclick="switchTab(event, '${tabName}')"]`).classList.add('active');
+            
+            // Update mobile nav active state
+            const mobileButtons = document.querySelectorAll('.mobile-nav button');
+            mobileButtons.forEach(btn => btn.classList.remove('active'));
+            
+            if (tabName === 'graph') mobileButtons[0]?.classList.add('active');
+            else if (tabName === 'reports') mobileButtons[1]?.classList.add('active');
+            else if (tabName === 'openai-query') mobileButtons[2]?.classList.add('active');
+        }
+        
+        // Resize listener for responsive changes
+        window.addEventListener('resize', () => {
+            setupMobileResponsive();
+            if (window.innerWidth > 1024) {
+                document.querySelector('.sidebar').classList.remove('show');
+                document.querySelector('.menu-toggle').style.display = 'none';
+            }
         });
     </script>
+    
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+        <button class="active" onclick="switchTabMobile('graph')">
+            <span class="mobile-nav-icon">📊</span>
+            <span>Graph</span>
+        </button>
+        <button onclick="switchTabMobile('reports')">
+            <span class="mobile-nav-icon">📈</span>
+            <span>Reports</span>
+        </button>
+        {% if enable_openai_nlp and is_admin %}
+        <button onclick="switchTabMobile('openai-query')">
+            <span class="mobile-nav-icon">🤖</span>
+            <span>AI</span>
+        </button>
+        {% endif %}
+        <button onclick="toggleSidebar()">
+            <span class="mobile-nav-icon">⚙️</span>
+            <span>Tools</span>
+        </button>
+    </div>
 </body>
 </html>

@@ -1165,6 +1165,18 @@
         // Initialize the network
         function initNetwork() {
             const container = document.getElementById('graph-canvas');
+            
+            // Ensure container has explicit dimensions
+            const parent = container.parentElement;
+            if (parent) {
+                const rect = parent.getBoundingClientRect();
+                container.style.width = rect.width + 'px';
+                container.style.height = rect.height + 'px';
+            } else {
+                container.style.width = '100%';
+                container.style.height = '600px';
+            }
+            
             const data = { nodes, edges };
             const options = {
                 physics: {
@@ -1211,6 +1223,11 @@
             };
             
             network = new vis.Network(container, data, options);
+            
+            // Fit the network to view when ready
+            network.once('stabilizationIterationsDone', () => {
+                network.fit();
+            });
         }
         
         // Create a new node

@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Domain Graph Builder</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 80px;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .user-info strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .role-badge.admin {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .logout-button {
+            padding: 8px 16px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .logout-button:hover {
+            background: #ff5252;
+            transform: translateY(-1px);
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+            height: 90vh;
+        }
+        
+        .sidebar {
+            width: 320px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #666;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .tab-button:hover {
+            background: #e0e0e0;
+        }
+        
+        .tab-button.active:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .tab-content {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #graph-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .reports-content {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .report-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .report-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .report-content {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        h1 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex-direction: column;
+        }
+        
+        .button-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .button-secondary:hover {
+            background: #e0e0e0;
+            box-shadow: none;
+        }
+        
+        .button-danger {
+            background: #ff6b6b;
+        }
+        
+        .button-danger:hover {
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+        
+        .section {
+            border-top: 2px solid #e0e0e0;
+            padding-top: 15px;
+        }
+        
+        .section:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+        
+        .list-item {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            gap: 8px;
+        }
+        
+        .list-item-label {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .list-item-type {
+            font-size: 11px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .list-item-delete {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .list-item-delete:hover {
+            background: #ff5252;
+        }
+        
+        .list-empty {
+            color: #999;
+            font-size: 13px;
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .info-message {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border-left: 4px solid #1976d2;
+        }
+        
+        .success-message {
+            background: #e8f5e9;
+            color: #388e3c;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border-left: 4px solid #388e3c;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border-left: 4px solid #c62828;
+        }
+        
+        .copy-button {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 4px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .db-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .db-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .db-card:hover {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+        
+        .db-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .db-meta {
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with User Info -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-logo">🧠 NLP Graph Builder</div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                👤 Logged in as: <strong>{{ username }}</strong>
+                {% if is_admin %}
+                <span class="role-badge admin">ADMIN</span>
+                {% else %}
+                <span class="role-badge">USER</span>
+                {% endif %}
+            </div>
+            <a href="/logout" class="logout-button">🔓 Logout</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div>
+                <h1>🧠 Domain Graph</h1>
+                <div class="info-message">
+                    Create nodes and connect them with semantic relationships.
+                </div>
+            </div>
+            
+            <!-- Create Node Section -->
+            <div class="section">
+                <h2 style="font-size: 14px; margin-bottom: 15px; color: #333;">Create Node</h2>
+                <div class="form-group">
+                    <label for="node-id">Node ID</label>
+                    <input type="text" id="node-id" placeholder="e.g., person_1" />
+                </div>
+                <div class="form-group">
+                    <label for="node-label">Node Label</label>
+                    <input type="text" id="node-label" placeholder="e.g., John Doe" />
+                </div>
+                <div class="form-group">
+                    <label for="node-type">Node Type</label>
+                    <select id="node-type">
+                        <option value="person">Person</option>
+                        <option value="organization">Organization</option>
+                        <option value="location">Location</option>
+                        <option value="concept">Concept</option>
+                        <option value="event">Event</option>
+                        <option value="default">Default</option>
+                    </select>
+                </div>
+                <button onclick="createNode()">Add Node</button>
+                <div id="node-message"></div>
+            </div>
+            
+            <!-- Create Edge Section -->
+            <div class="section">
+                <h2 style="font-size: 14px; margin-bottom: 15px; color: #333;">Create Edge</h2>
+                <div class="form-group">
+                    <label for="edge-source">Source Node ID</label>
+                    <input type="text" id="edge-source" placeholder="e.g., person_1" />
+                </div>
+                <div class="form-group">
+                    <label for="edge-target">Target Node ID</label>
+                    <input type="text" id="edge-target" placeholder="e.g., org_1" />
+                </div>
+                <div class="form-group">
+                    <label for="edge-relation">Relationship</label>
+                    <input type="text" id="edge-relation" placeholder="e.g., works_at" />
+                </div>
+                <button onclick="createEdge()">Connect Nodes</button>
+                <div id="edge-message"></div>
+            </div>
+            
+            <!-- Nodes List -->
+            <div class="section">
+                <h2 style="font-size: 14px; margin-bottom: 15px; color: #333;">Nodes</h2>
+                <div id="nodes-list" class="list-empty">No nodes yet</div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="section">
+                <h2 style="font-size: 14px; margin-bottom: 15px; color: #333;">Actions</h2>
+                <div class="button-group">
+                    <button onclick="exportGraph()" class="button-secondary">📥 Export Graph</button>
+                    <button onclick="triggerImport()" class="button-secondary">📤 Import Graph</button>
+                    <button onclick="showMongoDBImport()" class="button-secondary">🍃 Import MongoDB</button>
+                    <button onclick="clearGraph()" class="button-danger">🗑️ Clear All</button>
+                </div>
+                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importGraph(event)" />
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab(event, 'graph')">📊 Graph</button>
+                <button class="tab-button" onclick="switchTab(event, 'reports')">📈 Reports & Schemas</button>
+                {% if enable_openai_nlp and is_admin %}<button class="tab-button" onclick="switchTab(event, 'openai-query')">🤖 AI Query</button>{% endif %}
+            </div>
+            
+            <!-- Graph Tab -->
+            <div id="graph" class="tab-content active">
+                <div id="graph-canvas"></div>
+            </div>
+            
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content">
+                <div class="reports-content">
+                    <div>
+                        <h2>📈 Graph Statistics</h2>
+                        <div class="stats-grid" id="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Total Nodes</div>
+                                <div class="stat-value" id="stat-nodes">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Total Edges</div>
+                                <div class="stat-value" id="stat-edges">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SQL Schema -->
+                    <div class="report-card">
+                        <div class="report-title">
+                            <span>🗄️ SQL Schema (MySQL/PostgreSQL)</span>
+                            <button class="copy-button" onclick="copyToClipboard('sql-schema')">Copy</button>
+                        </div>
+                        <div class="report-content" id="sql-schema">
+                            <p style="color: #999;">Generate a graph first to see SQL schema</p>
+                        </div>
+                    </div>
+                    
+                    <!-- MongoDB Schema -->
+                    <div class="report-card">
+                        <div class="report-title">
+                            <span>🍃 MongoDB Schema</span>
+                            <button class="copy-button" onclick="copyToClipboard('mongodb-schema')">Copy</button>
+                        </div>
+                        <div class="report-content" id="mongodb-schema">
+                            <p style="color: #999;">Generate a graph first to see MongoDB schema</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- OpenAI Query Tab -->
+            {% if enable_openai_nlp and is_admin %}
+            <div id="openai-query" class="tab-content">
+                <div class="reports-content">
+                    <div>
+                        <h2>🤖 AI Query Assistant</h2>
+                        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Ask any question and get responses powered by OpenAI GPT</p>
+                    </div>
+                    
+                    <!-- Query Form -->
+                    <div class="report-card">
+                        <div class="form-group">
+                            <label>Your Question</label>
+                            <textarea id="openai-question" placeholder="Ask me anything..." style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; font-family: inherit; min-height: 100px; resize: vertical; transition: border-color 0.3s;" onkeydown="if(event.key === 'Enter' && event.ctrlKey) queryOpenAI();"></textarea>
+                            <small style="color: #999; font-size: 11px; margin-top: 5px;">💡 Press Ctrl+Enter to send</small>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button onclick="queryOpenAI()" style="width: 100%; padding: 12px;">🚀 Get Answer</button>
+                        </div>
+                        <div id="openai-message" style="margin-top: 15px;"></div>
+                    </div>
+                    
+                    <!-- Response Display -->
+                    <div id="openai-response-container" style="display: none; margin-top: 20px;">
+                        <!-- Question -->
+                        <div class="report-card">
+                            <div class="report-title">
+                                <span>❓ Your Question</span>
+                            </div>
+                            <div class="report-content" id="openai-display-question" style="background: #f0f7ff; color: #1976d2; max-height: none; white-space: normal;"></div>
+                        </div>
+                        
+                        <!-- Answer -->
+                        <div class="report-card">
+                            <div class="report-title">
+                                <span>💬 AI Response</span>
+                                <button class="copy-button" onclick="copyToClipboard('openai-display-answer')">Copy</button>
+                            </div>
+                            <div class="report-content" id="openai-display-answer" style="max-height: none;"></div>
+                        </div>
+                        
+                        <!-- Usage Stats -->
+                        <div class="report-card">
+                            <div class="report-title">
+                                <span>📊 Usage</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                                    <div style="font-size: 11px; color: #999; margin-bottom: 5px;">Prompt Tokens</div>
+                                    <div style="font-size: 18px; font-weight: bold; color: #667eea;" id="openai-prompt-tokens">0</div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                                    <div style="font-size: 11px; color: #999; margin-bottom: 5px;">Completion Tokens</div>
+                                    <div style="font-size: 18px; font-weight: bold; color: #764ba2;" id="openai-completion-tokens">0</div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center;">
+                                    <div style="font-size: 11px; color: #999; margin-bottom: 5px;">Total Tokens</div>
+                                    <div style="font-size: 18px; font-weight: bold; color: #43e97b;" id="openai-total-tokens">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- MongoDB Modal -->
+    <div id="mongodbModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeMongoDBModal()">&times;</span>
+            <div class="modal-header">🍃 Import MongoDB Sample Database</div>
+            <div class="db-list" id="dbList">
+                <p style="color: #999; text-align: center;">Loading databases...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let nodes = new vis.DataSet();
+        let edges = new vis.DataSet();
+        let network;
+        
+        // Tab switching
+        function switchTab(event, tabName) {
+            event.preventDefault();
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show active tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Refresh reports if switching to reports tab
+            if (tabName === 'reports') {
+                refreshReports();
+            }
+        }
+        
+        // Initialize the network
+        function initNetwork() {
+            const container = document.getElementById('graph-canvas');
+            const data = { nodes, edges };
+            const options = {
+                physics: {
+                    enabled: true,
+                    stabilization: {
+                        iterations: 200
+                    }
+                },
+                nodes: {
+                    shape: 'dot',
+                    scaling: {
+                        label: {
+                            enabled: true,
+                            min: 14,
+                            max: 30
+                        }
+                    },
+                    font: {
+                        size: 16,
+                        face: 'Tahoma'
+                    }
+                },
+                edges: {
+                    width: 2,
+                    color: {
+                        color: '#ccc',
+                        highlight: '#667eea'
+                    },
+                    font: {
+                        size: 12,
+                        align: 'middle'
+                    },
+                    arrows: {
+                        to: {
+                            enabled: true,
+                            scaleFactor: 0.5
+                        }
+                    }
+                },
+                interaction: {
+                    navigationButtons: true,
+                    keyboard: true
+                }
+            };
+            
+            network = new vis.Network(container, data, options);
+        }
+        
+        // Create a new node
+        async function createNode() {
+            const id = document.getElementById('node-id').value.trim();
+            const label = document.getElementById('node-label').value.trim();
+            const type = document.getElementById('node-type').value;
+            const messageDiv = document.getElementById('node-message');
+            
+            if (!id || !label) {
+                showMessage(messageDiv, 'Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/nodes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, label, type })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    showMessage(messageDiv, error.error || 'Failed to create node', 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                const node = data.node;
+                
+                const colorMap = {
+                    person: '#667eea',
+                    organization: '#764ba2',
+                    location: '#f093fb',
+                    concept: '#4facfe',
+                    event: '#43e97b',
+                    default: '#888'
+                };
+                
+                nodes.add({
+                    id: node.id,
+                    label: node.label,
+                    color: colorMap[node.type],
+                    title: `${node.label} (${node.type})`
+                });
+                
+                showMessage(messageDiv, `Node "${label}" created!`, 'success');
+                document.getElementById('node-id').value = '';
+                document.getElementById('node-label').value = '';
+                updateNodesList();
+            } catch (error) {
+                showMessage(messageDiv, 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Create a new edge
+        async function createEdge() {
+            const source = document.getElementById('edge-source').value.trim();
+            const target = document.getElementById('edge-target').value.trim();
+            const relation = document.getElementById('edge-relation').value.trim() || 'related_to';
+            const messageDiv = document.getElementById('edge-message');
+            
+            if (!source || !target) {
+                showMessage(messageDiv, 'Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/edges', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ source, target, relation })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    showMessage(messageDiv, error.error || 'Failed to create edge', 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                const edge = data.edge;
+                
+                edges.add({
+                    id: edge.id,
+                    from: edge.source,
+                    to: edge.target,
+                    label: edge.relation,
+                    title: `${edge.source} → ${edge.target} [${edge.relation}]`
+                });
+                
+                showMessage(messageDiv, `Edge "${relation}" created!`, 'success');
+                document.getElementById('edge-source').value = '';
+                document.getElementById('edge-target').value = '';
+                document.getElementById('edge-relation').value = '';
+            } catch (error) {
+                showMessage(messageDiv, 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Update nodes list
+        async function updateNodesList() {
+            try {
+                const response = await fetch('/api/nodes');
+                const data = await response.json();
+                const nodesList = document.getElementById('nodes-list');
+                
+                if (data.nodes.length === 0) {
+                    nodesList.innerHTML = '<div class="list-empty">No nodes yet</div>';
+                    return;
+                }
+                
+                nodesList.innerHTML = data.nodes.map(node => `
+                    <div class="list-item">
+                        <span class="list-item-label">${node.label}</span>
+                        <span class="list-item-type">${node.type}</span>
+                        <button class="list-item-delete" onclick="deleteNode('${node.id}')">✕</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error updating nodes list:', error);
+            }
+        }
+        
+        // Delete a node
+        async function deleteNode(nodeId) {
+            try {
+                const response = await fetch(`/api/nodes/${nodeId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    nodes.remove(nodeId);
+                    updateNodesList();
+                    network.redraw();
+                }
+            } catch (error) {
+                console.error('Error deleting node:', error);
+            }
+        }
+        
+        // Clear the entire graph
+        async function clearGraph() {
+            if (!confirm('Are you sure you want to clear all nodes and edges?')) return;
+            
+            try {
+                const response = await fetch('/api/graph/clear', { method: 'DELETE' });
+                if (response.ok) {
+                    nodes.clear();
+                    edges.clear();
+                    updateNodesList();
+                }
+            } catch (error) {
+                console.error('Error clearing graph:', error);
+            }
+        }
+        
+        // Export graph as JSON
+        function exportGraph() {
+            const data = {
+                nodes: nodes.get(),
+                edges: edges.get(),
+                exportedAt: new Date().toISOString(),
+                version: '1.0'
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `graph_export_${new Date().getTime()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Trigger file input for import
+        function triggerImport() {
+            document.getElementById('import-file').click();
+        }
+        
+        // Import graph from JSON file
+        async function importGraph(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                
+                if (!data.nodes || !data.edges) {
+                    alert('Invalid file format. Must contain nodes and edges.');
+                    return;
+                }
+                
+                if (!confirm(`Import ${data.nodes.length} nodes and ${data.edges.length} edges? This will replace your current graph.`)) {
+                    return;
+                }
+                
+                const response = await fetch('/api/graph/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Import failed: ' + (error.error || 'Unknown error'));
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                nodes.clear();
+                edges.clear();
+                
+                const colorMap = {
+                    person: '#667eea',
+                    organization: '#764ba2',
+                    location: '#f093fb',
+                    concept: '#4facfe',
+                    event: '#43e97b',
+                    default: '#888'
+                };
+                
+                data.nodes.forEach(node => {
+                    nodes.add({
+                        id: node.id,
+                        label: node.label,
+                        color: colorMap[node.type] || colorMap['default'],
+                        title: `${node.label} (${node.type})`
+                    });
+                });
+                
+                data.edges.forEach(edge => {
+                    edges.add({
+                        id: edge.id,
+                        from: edge.source,
+                        to: edge.target,
+                        label: edge.relation,
+                        title: `${edge.source} → ${edge.target} [${edge.relation}]`
+                    });
+                });
+                
+                updateNodesList();
+                alert(`✓ Graph imported! ${result.nodes_count} nodes and ${result.edges_count} edges loaded.`);
+                
+                document.getElementById('import-file').value = '';
+            } catch (error) {
+                alert('Error reading file: ' + error.message);
+                document.getElementById('import-file').value = '';
+            }
+        }
+        
+        // Refresh reports
+        async function refreshReports() {
+            try {
+                const statsResponse = await fetch('/api/report/graph-stats');
+                const stats = await statsResponse.json();
+                
+                document.getElementById('stat-nodes').textContent = stats.total_nodes;
+                document.getElementById('stat-edges').textContent = stats.total_edges;
+                
+                const sqlResponse = await fetch('/api/schemas/sql');
+                const sqlData = await sqlResponse.json();
+                document.getElementById('sql-schema').textContent = sqlData.schema;
+                
+                const mongoResponse = await fetch('/api/schemas/mongodb');
+                const mongoData = await mongoResponse.json();
+                document.getElementById('mongodb-schema').textContent = JSON.stringify(mongoData.schema, null, 2);
+            } catch (error) {
+                console.error('Error refreshing reports:', error);
+            }
+        }
+        
+        // Copy to clipboard
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+        
+        // MongoDB Import Modal
+        async function showMongoDBImport() {
+            document.getElementById('mongodbModal').classList.add('show');
+            
+            try {
+                const response = await fetch('/api/mongodb/databases');
+                const data = await response.json();
+                
+                const dbList = document.getElementById('dbList');
+                
+                if (data.databases.length === 0) {
+                    dbList.innerHTML = '<p style="color: #999; text-align: center;">No databases available</p>';
+                    return;
+                }
+                
+                dbList.innerHTML = data.databases.map(db => `
+                    <div class="db-card" onclick="importMongoDBSample('${db.name}')">
+                        <div class="db-name">${db.name}</div>
+                        <div class="db-meta">
+                            Collections: ${db.collection_count} | 
+                            Sample Nodes: ~${db.total_sample_nodes} | 
+                            Sample Edges: ~${db.total_sample_edges}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                alert('Error loading databases: ' + error.message);
+                closeMongoDBModal();
+            }
+        }
+        
+        function closeMongoDBModal() {
+            document.getElementById('mongodbModal').classList.remove('show');
+        }
+        
+        async function importMongoDBSample(databaseName) {
+            if (!confirm(`Import MongoDB sample database "${databaseName}"? This will replace your current graph.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/mongodb/import/${databaseName}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Import failed: ' + (error.error || 'Unknown error'));
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                const graphResponse = await fetch('/api/graph');
+                const graphData = await graphResponse.json();
+                
+                nodes.clear();
+                edges.clear();
+                
+                const colorMap = {
+                    person: '#667eea',
+                    organization: '#764ba2',
+                    location: '#f093fb',
+                    concept: '#4facfe',
+                    event: '#43e97b',
+                    default: '#888'
+                };
+                
+                graphData.nodes.forEach(node => {
+                    nodes.add({
+                        id: node.id,
+                        label: node.label,
+                        color: colorMap[node.type] || colorMap['default'],
+                        title: `${node.label} (${node.type})`
+                    });
+                });
+                
+                graphData.edges.forEach(edge => {
+                    edges.add({
+                        id: edge.id,
+                        from: edge.source,
+                        to: edge.target,
+                        label: edge.relation,
+                        title: `${edge.source} → ${edge.target} [${edge.relation}]`
+                    });
+                });
+                
+                updateNodesList();
+                closeMongoDBModal();
+                alert(`✓ MongoDB database imported! ${result.nodes_count} nodes and ${result.edges_count} edges loaded.`);
+                
+                // Switch to graph tab
+                document.getElementById('graph').classList.add('active');
+                document.querySelectorAll('.tab-button').forEach((btn, idx) => {
+                    if (idx === 0) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+            } catch (error) {
+                alert('Error importing database: ' + error.message);
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('mongodbModal');
+            if (event.target === modal) {
+                closeMongoDBModal();
+            }
+        }
+        
+        // Show messages
+        function showMessage(element, message, type) {
+            element.innerHTML = `<div class="${type}-message">${message}</div>`;
+            setTimeout(() => {
+                element.innerHTML = '';
+            }, 3000);
+        }
+        
+        // OpenAI Query Function
+        async function queryOpenAI() {
+            const question = document.getElementById('openai-question').value.trim();
+            const messageDiv = document.getElementById('openai-message');
+            const responseContainer = document.getElementById('openai-response-container');
+            
+            if (!question) {
+                showMessage(messageDiv, '❌ Please enter a question', 'error');
+                return;
+            }
+            
+            // Show loading state
+            const submitButton = event?.target || document.querySelector('[onclick="queryOpenAI()"]');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = '⏳ Thinking...';
+            submitButton.disabled = true;
+            
+            try {
+                const response = await fetch('/api/openai/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    showMessage(messageDiv, `❌ ${error.error || 'Failed to get response'}`, 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // Display response
+                document.getElementById('openai-display-question').textContent = data.question;
+                document.getElementById('openai-display-answer').textContent = data.answer;
+                document.getElementById('openai-prompt-tokens').textContent = data.usage.prompt_tokens;
+                document.getElementById('openai-completion-tokens').textContent = data.usage.completion_tokens;
+                document.getElementById('openai-total-tokens').textContent = data.usage.total_tokens;
+                
+                responseContainer.style.display = 'block';
+                showMessage(messageDiv, '✅ Response received!', 'success');
+                
+            } catch (error) {
+                showMessage(messageDiv, `❌ Error: ${error.message}`, 'error');
+            } finally {
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            }
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            initNetwork();
+            updateNodesList();
+        });
+    </script>
+</body>
+</html>

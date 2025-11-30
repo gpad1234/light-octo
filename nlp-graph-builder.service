@@ -1,0 +1,45 @@
+[Unit]
+Description=NLP Graph Builder - Gunicorn Application Server
+Documentation=https://github.com/gpad1234/fuzzy-adventure
+After=network.target
+
+[Service]
+Type=notify
+User=nlp-app
+Group=www-data
+WorkingDirectory=/home/nlp-app/fuzzy-adventure
+
+# Set environment variables from .env file
+EnvironmentFile=/home/nlp-app/fuzzy-adventure/.env
+
+# Python virtual environment
+Environment="PATH=/home/nlp-app/fuzzy-adventure/.venv/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Gunicorn command
+ExecStart=/home/nlp-app/fuzzy-adventure/.venv/bin/gunicorn \
+    --config /home/nlp-app/fuzzy-adventure/gunicorn_config.py \
+    --workers 4 \
+    --bind 127.0.0.1:8000 \
+    --timeout 30 \
+    --access-logfile /var/log/gunicorn/nlp-app-access.log \
+    --error-logfile /var/log/gunicorn/nlp-app-error.log \
+    app:app
+
+# Process management
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nlp-graph-builder
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=512
+
+[Install]
+WantedBy=multi-user.target

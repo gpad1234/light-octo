@@ -16,6 +16,15 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-pro
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
+# Initialize sample data when app starts
+@app.before_request
+def init_data_once():
+    """Initialize sample data on first request if empty."""
+    if len(nodes) == 0 and len(edges) == 0:
+        initialize_sample_data()
+    # Remove this handler after first execution
+    app.before_request_funcs[None].remove(init_data_once)
+
 # Configuration flag for OpenAI NLP tab
 ENABLE_OPENAI_NLP = os.getenv('ENABLE_OPENAI_NLP', 'true').lower() == 'true'
 
@@ -636,9 +645,6 @@ def openai_query():
 
 
 if __name__ == '__main__':
-    # Initialize sample data on startup
-    initialize_sample_data()
-    
     # Only run development server if DEBUG is True
     # In production, use gunicorn instead
     debug_mode = os.getenv('DEBUG', 'false').lower() == 'true'

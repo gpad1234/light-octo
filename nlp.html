@@ -1252,10 +1252,57 @@
             }
         }
         
+        // Load graph data from API
+        async function loadGraphData() {
+            try {
+                const response = await fetch('/api/graph');
+                const data = await response.json();
+                
+                const colorMap = {
+                    person: '#667eea',
+                    organization: '#764ba2',
+                    location: '#f093fb',
+                    concept: '#4facfe',
+                    event: '#43e97b',
+                    entity: '#4facfe',
+                    default: '#888'
+                };
+                
+                // Add nodes
+                data.nodes.forEach(node => {
+                    nodes.add({
+                        id: node.id,
+                        label: node.label,
+                        color: colorMap[node.type] || colorMap['default'],
+                        title: `${node.label} (${node.type})`
+                    });
+                });
+                
+                // Add edges
+                data.edges.forEach(edge => {
+                    edges.add({
+                        id: edge.id,
+                        from: edge.source,
+                        to: edge.target,
+                        label: edge.relation,
+                        title: `${edge.source} → ${edge.target} [${edge.relation}]`
+                    });
+                });
+                
+                // Update stats
+                document.getElementById('stat-nodes').textContent = data.nodes.length;
+                document.getElementById('stat-edges').textContent = data.edges.length;
+                
+                updateNodesList();
+            } catch (error) {
+                console.error('Error loading graph data:', error);
+            }
+        }
+        
         // Initialize on page load
         window.addEventListener('load', () => {
             initNetwork();
-            updateNodesList();
+            loadGraphData();
         });
     </script>
 </body>

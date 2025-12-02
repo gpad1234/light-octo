@@ -1,6 +1,6 @@
 # Flask Application
 
-A simple Python Flask web application.
+A simple Python Flask web application. Production env of fuzzy
 
 ## Project Structure
 
